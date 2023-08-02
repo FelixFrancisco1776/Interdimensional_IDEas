@@ -22,3 +22,42 @@ app.get("/", (req, res) => {
     res.sendFile(notesPath);
   });
   // ↑↑↑↑↑↑↑↑↑↑↑↑ HTML Page Setup ↑↑↑↑↑↑↑↑↑↑↑↑
+  
+app.get("/api/notes", (req, res) => {
+    fs.readFile(dataFilePath, "utf8", (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Failed to read notes" });
+      }
+      const notes = JSON.parse(data);
+      res.json(notes);
+    });
+  });
+  // ↑↑↑↑↑↑↑↑↑↑↑↑ read note from the file ↑↑↑↑↑↑↑↑↑↑↑↑
+
+  app.post("/api/notes", (req, res) => {
+    const { title, text } = req.body;
+    if (!title || !text) {
+      return res.status(400).json({ error: "Title and text are required" });
+    }
+  
+    fs.readFile(dataFilePath, "utf8", (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Failed to read notes" });
+      }
+  
+      const notes = JSON.parse(data);
+      const newNote = { title, text, id: notes.length + 1 };
+      notes.push(newNote);
+  
+      fs.writeFile(dataFilePath, JSON.stringify(notes), "utf8", (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: "Failed to save note" });
+        }
+        res.json(newNote);
+      });
+    });
+  });
+ // ↑↑↑↑↑↑↑↑↑↑↑↑ add a new note ↑↑↑↑↑↑↑↑↑↑↑↑
